@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const autoIncrement = require("mongoose-auto-increment");
 const jwt = require("jsonwebtoken");
 const config = require("../config/config").get(process.env.NODE_ENV);
 const SALT_I = 10;
@@ -26,10 +27,20 @@ const userSchema = new Schema({
         default: 0
     },
     token: {
-        type: String
+        type: String,
+        default: null
     }
+}, {
+    versionKey: false,
+    timestamps: true
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('users', userSchema);
+userSchema.plugin(autoIncrement.plugin,{
+    model: 'users',
+    field: "_id",
+    startAt: 1,
+    incrementBy: 1
+});
 
 module.exports = { User };
