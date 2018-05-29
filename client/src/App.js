@@ -1,43 +1,83 @@
 import React, { Component } from 'react';
+import ReactDom from 'react-dom';
+import Button from '@material-ui/core/Button';
+import { withStyles } from '@material-ui/core/styles';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import PostList from './components/PostList';
+
 import logo from './logo.svg';
 import './App.css';
 import axios from 'axios';
+import { TextField } from '@material-ui/core';
+
+
+const classes = {
+    marginTop: 10
+}
+
 
 class App extends Component {
 
   state = {
     name: '',
     nameAuthor: '',
-    ownerID: '',
-    review: '',
-    rating: '',
-    price: ''
+    price: '',
+    data: [],
+    pressed: false
   }
 
-  componentWillMount() {
-    fetch('http://localhost:3001/api/books')
-    .then(res => console.log(res))
-    .catch(err => console.log(err))
+  componentDidMount() {
+    fetch('http://localhost:3001/api/books', {
+        method: "GET",
+        headers: {
+          "Accept": "application/json"
+        },
+      })
+      .then(res => res.json())
+      .then(parsedRes => { 
+        this.setState({data: parsedRes})
+        console.log(this.state.data)
+      })
+      .catch(err => console.log(err))
+  }
+
+  getImmendiatly = () => {
+    if(this.state.pressed) {
+      fetch('http://localhost:3001/api/books', {
+        method: "GET",
+        headers: {
+          "Accept": "application/json"
+        },
+      })
+      .then(res => res.json())
+      .then(parsedRes => { 
+        this.setState({data: parsedRes})
+        console.log(this.state.data)
+      })
+      .catch(err => console.log(err))
+    }
   }
 
   postBook = () => {
     const data = {
       name: this.state.name,
       author: this.state.nameAuthor,
-      review: this.state.review,
-      rating: this.state.rating,
       price: this.state.price,
-      ownerID: this.state.ownerID
     };
     const name= data.name;
     const author = data.author;
-    const review = data.review;
-    const rating = data.rating;
     const price = data.price;
-    const ownerID = data.ownerID;
 
-    axios.get(`http://localhost:3001/api/book?name=${name}&author=${author}&review=${review}&rating=${review}&price=${price}&ownerID=${ownerID}&rating=${rating}`)
-    .then(res => console.log(res.data))
+    axios.get(`http://localhost:3001/api/book?name=${name}&authorName=${author}&price=${price}`)
+    .then(res => {
+      this.setState({
+        pressed: true
+      })
+      this.getImmendiatly();
+    })
     .catch(err => console.log(err))
   }
 
@@ -46,14 +86,6 @@ class App extends Component {
       name: event.target.value
     })
     console.log(this.state)
-    
-  }
-
-  onChangeValRating = (event) => {
-    this.setState({
-      rating: event.target.value
-    })
-    console.log(this.state.rating)
     
   }
   
@@ -65,22 +97,6 @@ class App extends Component {
     
   }
 
-  onChangeValOwnerId = (event) => {
-    this.setState({
-      ownerID: event.target.value,
-    })
-    console.log(this.state.ownerID)
-  }
-
-
-  onChangeValReview = (event) => {
-    this.setState({
-      review: event.target.value
-    })
-    console.log(this.state.review)
-    
-  }
-
   onChangeValNameAuthor = (event) => {
     this.setState({
       nameAuthor: event.target.value
@@ -88,50 +104,56 @@ class App extends Component {
     console.log(this.state.nameAuthor)
   }
 
+
   render() {
     return (
       <div className="App">
+        <AppBar position="static" color="primary">
+          <Toolbar>
+            <Typography variant="title" color="inherit">
+              BookShelf
+            </Typography>
+          </Toolbar>
+        </AppBar>
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Welcome to React</h1>
         </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-        <form action="" method="GET">
-
-          <label for="name" >
-            Имя 
-            <input type="text" name="name" id="name" placeholder="Введите имя книги" onChange={this.onChangeValName} className="input"/>
-          </label>
-
-          <label for="name" >
-           Имя автора 
-            <input type="text" name="nameAuthor" id="nameAuthor" placeholder="Введите имя автора" onChange={this.onChangeValNameAuthor} className="input"/>
-          </label>
-
-          <label for="name" >
-            Обзор 
-            <input type="text" name="review" id="review" placeholder="Введите обзор" onChange={this.onChangeValReview} className="input"/>
-          </label>
-
-          <label for="name" >
-            Рейтинг 
-            <input type="text" name="rating" id="rating" placeholder="Введите рейтинг" onChange={this.onChangeValRating} className="input"/>
-          </label>
-
-          <label for="name" >
-            Цена 
-            <input type="text" name="price" id="price" placeholder="Введите цену" onChange={this.onChangeValPrice} className="input"/>
-          </label>
-
-          <label for="name" >
-            ID владельца 
-            <input type="text" name="ownerID" id="ownerID" placeholder="Введите id владельца" onChange={this.onChangeValOwnerId} className="input"/>
-          </label>
-
-          <input type="submit" value="submit" onClick={this.postBook}/>
-        </form>
+        <div className={classes.root}>
+      </div>
+      <div>
+          {this.state.data.length == 0 ? 
+            <div className="mainForm">
+            <TextField
+              id="name"
+              label="Имя"
+              className="field"
+              value={this.state.name}
+              onChange={this.onChangeValName}
+              margin="normal"
+             />
+              <TextField
+              id="name"
+              label="Имя автора"
+              className="field"
+              value={this.state.nameAuthor}
+              onChange={this.onChangeValNameAuthor}
+              margin="normal"
+             />
+              <TextField
+                id="name"
+                label="Прайс"
+                className="field"
+                value={this.state.price}
+                onChange={this.onChangeValPrice}
+                margin="normal"
+              />
+                <Button color="primary" variant="raised" onClick={this.postBook}>Отправить</Button>
+              </div>
+              : 
+            <PostList data={this.state.data}/>
+          }
+        </div>
       </div>
     );
   }

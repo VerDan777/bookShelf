@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 const app = express();
 const autoIncrement = require("mongoose-auto-increment");
 const mongoose = require("mongoose");
@@ -12,23 +13,26 @@ autoIncrement.initialize(db);
 
 const { User } = require("./models/users");
 const { Book } = require("./models/book");
+const { simpleBook } = require("./models/simpleBook");
 
 mongoose.promise = global.Promise;
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-var allowCrossDomain = function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', "*");
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-}
-app.use(allowCrossDomain)
+app.use(cors());
 
-app.get('/api/book', (req,res) => {
-    const book = new Book(req.query)
+// var allowCrossDomain = function(req, res, next) {
+//     res.header('Access-Control-Allow-Origin', "*");
+//     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+//     res.header('Access-Control-Allow-Headers', 'Content-Type');
+//     next();
+// }
+// app.use(allowCrossDomain)
 
-    book.save((err, doc) => {
+app.get('/api/book', (req,res) => { 
+    const simplebook = new simpleBook(req.query)
+
+    simplebook.save((err, doc) => {
         if(err) {
             return console.log(err)
         } else if(doc) {
@@ -48,7 +52,7 @@ app.get('/api/getBook', (req, res, next) => {
 })
 
 app.get('/api/books', (req, res) => {
-    Book.find({}, (err, books) => {
+    simpleBook.find({}, (err, books) => {
         if(err) return res.status(400).send(err);
         res.status(200).send(books);
     });
@@ -56,15 +60,12 @@ app.get('/api/books', (req, res) => {
 
 app.post('/api/deleteBook', (req, res) => {
     let id = req.body.id;
-    Book.findByIdAndRemove(id, (err, book) => {
+    simpleBook.findByIdAndRemove(id, (err, book) => {
         if(err) return res.status(400).send(err);
         res.status(200).send("Succesfull delete!")
     })
 })
 
-app.get('/api/test', (req, res) => {
-    res.send('work')
-})
 
 app.post('/api/register', (req, res) => {
     const user = new User(req.body);
@@ -82,9 +83,10 @@ app.get('/api/users', (req, res) => {
 });
 
 
+
+
 app.post('/api/updateBook', (req, res) => {
     let id = req.body.id;
-
     Book.findByIdAndUpdate(id, req.body, {new: true}, (err, book) => {
         if(err) return res.status(400).send(err);
         res.status(200).send(book)
