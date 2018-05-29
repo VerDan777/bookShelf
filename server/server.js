@@ -17,20 +17,23 @@ mongoose.promise = global.Promise;
 
 app.use(bodyParser.json());
 app.use(cookieParser());
+var allowCrossDomain = function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', "*");
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+}
+app.use(allowCrossDomain)
 
-app.post('/api/book', (req,res) => {
-    const book = new Book(req.body)
+app.get('/api/book', (req,res) => {
+    const book = new Book(req.query)
 
     book.save((err, doc) => {
         if(err) {
             return console.log(err)
         } else if(doc) {
-            res.status(200).json({
-                post: true,
-                bookID: doc._id
-            })
+            res.status(200).send(doc)
         }
-
     })
 })
 
@@ -59,6 +62,10 @@ app.post('/api/deleteBook', (req, res) => {
     })
 })
 
+app.get('/api/test', (req, res) => {
+    res.send('work')
+})
+
 app.post('/api/register', (req, res) => {
     const user = new User(req.body);
     user.save((err, user) => {
@@ -72,7 +79,8 @@ app.get('/api/users', (req, res) => {
         if(err) return res.status(400).send(err);
         res.status(200).send(users)
     })
-})
+});
+
 
 app.post('/api/updateBook', (req, res) => {
     let id = req.body.id;
@@ -82,7 +90,7 @@ app.post('/api/updateBook', (req, res) => {
         res.status(200).send(book)
     })
 })
-const port = process.env.PORT || 3002;
+const port = process.env.PORT || 3001;
 
 app.listen(port, () => {
     console.log(`Server started on ${port} port`)

@@ -13,9 +13,15 @@
   "engines": {
     "node": "8.9.3"
   },
+  "proxy": {
+    "/api/" : {
+      "target": "http://localhost:3001"
+    }
+  },
   "author": "Daniil Vereschagin",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
     "bcrypt": "^2.0.1",
     "body-parser": "^1.18.3",
     "concurrently": "^3.5.1",

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const autoIncrement = require("mongoose-auto-increment");
 
 const bookSchema = new Schema({
     name: {
@@ -34,14 +35,17 @@ const bookSchema = new Schema({
         required: true
     }
 }, 
-{
-    timestamps: 
-    {   
-        createdAt: 'created_at',
-        updatedAt: 'updated_at'
-    }
+{   
+    versionKey: false,
+    timestamps: true
 })
 
 const Book = mongoose.model('books', bookSchema);
+bookSchema.plugin(autoIncrement.plugin, {
+    model: 'books',
+    field: '_id',
+    startAt: 1,
+    incrementBy: 1
+});
 
 module.exports = { Book };
