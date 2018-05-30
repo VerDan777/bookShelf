@@ -6,6 +6,7 @@ const app = express();
 const autoIncrement = require("mongoose-auto-increment");
 const mongoose = require("mongoose");
 const config = require("./config/config").get(process.env.NODE_ENV);
+const graphqlHTTP = require("express-graphql");
 
 const connection = mongoose.connect(config.DATABASE);
 const db = mongoose.connection;
@@ -14,6 +15,7 @@ autoIncrement.initialize(db);
 const { User } = require("./models/users");
 const { Book } = require("./models/book");
 const { simpleBook } = require("./models/simpleBook");
+const {schema} = require("./models/graphqlSchema");
 
 mongoose.promise = global.Promise;
 
@@ -21,14 +23,42 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors());
 
-// var allowCrossDomain = function(req, res, next) {
-//     res.header('Access-Control-Allow-Origin', "*");
-//     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-//     res.header('Access-Control-Allow-Headers', 'Content-Type');
-//     next();
-// }
-// app.use(allowCrossDomain)
+var root = {
+    hello: () => {
+      return 'Hello world!';
+    },
+  };
+  var fakeDatabase = {};
 
+  var root = {
+    getMessage: function ({id}) {
+      if (!fakeDatabase[id]) {
+        throw new Error('no message exists with id ' + id);
+      }
+      return new Message(id, fakeDatabase[id]);
+    },
+    createMessage: function ({input}) {
+      // Create a random id for our "database".
+      var id = require('crypto').randomBytes(10).toString('hex');
+  
+      fakeDatabase[id] = input;
+      return new Message(id, input);
+    },
+    updateMessage: function ({id, input}) {
+      if (!fakeDatabase[id]) {
+        throw new Error('no message exists with id ' + id);
+      }
+      // This replaces all old data, but some apps might want partial update.
+      fakeDatabase[id] = input;
+      return new Message(id, input);
+    },
+  };
+  
+app.use('/graphql', graphqlHTTP({
+    schema: schema,
+    rootValue: root,
+    graphiql: true,
+  }));
 app.get('/api/book', (req,res) => { 
     const simplebook = new simpleBook(req.query)
 
@@ -54,7 +84,7 @@ app.get('/api/getBook', (req, res, next) => {
 app.get('/api/books', (req, res) => {
     simpleBook.find({}, (err, books) => {
         if(err) return res.status(400).send(err);
-        res.status(200).send(books);
+        res.status(200).send(books)
     });
 });
 
@@ -82,9 +112,6 @@ app.get('/api/users', (req, res) => {
     })
 });
 
-
-
-
 app.post('/api/updateBook', (req, res) => {
     let id = req.body.id;
     Book.findByIdAndUpdate(id, req.body, {new: true}, (err, book) => {
@@ -92,6 +119,7 @@ app.post('/api/updateBook', (req, res) => {
         res.status(200).send(book)
     })
 })
+
 const port = process.env.PORT || 3001;
 
 app.listen(port, () => {
