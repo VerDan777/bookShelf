@@ -4,9 +4,8 @@ const autoIncrement = require("mongoose-auto-increment");
 const jwt = require("jsonwebtoken");
 const config = require("../config/config").get(process.env.NODE_ENV);
 const SALT_I = 10;
-const Schema = mongoose.Schema;
 
-const userSchema = new Schema({
+const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
@@ -20,20 +19,61 @@ const userSchema = new Schema({
     },
     name: {
         type: String,
-        maxenght: 100
+        maxlenght: 32
     },
     role: {
         type: Number,
         default: 0
     },
     token: {
-        type: String,
-        default: null
+        type: String
     }
-}, {
+},{
     versionKey: false,
     timestamps: true
 });
+
+userSchema.pre('save',function(next) {
+    var user = this;
+
+    if(user.isModified('password')) {
+        bcrypt.genSalt(SALT_I, (err,salt) => {
+            if(err) return next(err);
+            
+            bcrypt.hash(user.token, salt, function(err, hash) {
+                if(err) return next(err);
+                user.password = hash;
+                next();
+            })
+        })
+    } else {
+        next();
+    }
+})
+
+userSchema.methods.comparePassword = function(candidatePassword, cb) {
+    console.log('works before')
+    bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+        if(err) return cb(err)
+        cb(null, isMatch);
+    })
+    console.log('works after')
+}
+
+userSchema.methods.generateToken = function(cb) {
+    var user = this;
+    var token = jwt.sign(user._id, config.SECRET);
+    user.token = token;
+    user.save(function(err, user) {
+        if(err) return cb(err);
+        cb(null,user)
+    })
+}
+
+userSchema.statics.findByToken = function(token, cb) {
+    const user = this;
+    user.token = token;
+}
 
 const User = mongoose.model('users', userSchema);
 userSchema.plugin(autoIncrement.plugin,{
