@@ -2,16 +2,11 @@ import React, { Component } from 'react';
 import ReactDom from 'react-dom';
 import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/core/styles';
-import {BrowserRouter} from 'react-router-dom';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
-import PostList from './components/PostList';
-import Nav from './Nav/nav';
-import logo from './logo.svg';
-import './App.css';
-import axios from 'axios';
+// import PostList from './components/PostList';
 import { TextField } from '@material-ui/core';
 
 
@@ -72,14 +67,14 @@ class App extends Component {
     const author = data.author;
     const price = data.price;
 
-    axios.get(`http://localhost:3001/api/book?name=${name}&authorName=${author}&price=${price}`)
-    .then(res => {
-      this.setState({
-        pressed: true
-      })
-      this.getImmendiatly();
-    })
-    .catch(err => console.log(err))
+    // axios.get(`http://localhost:3001/api/book?name=${name}&authorName=${author}&price=${price}`)
+    // .then(res => {
+    //   this.setState({
+    //     pressed: true
+    //   })
+    //   this.getImmendiatly();
+    // })
+    // .catch(err => console.log(err))
   }
 
   onChangeValName = (event) => {
@@ -108,9 +103,49 @@ class App extends Component {
 
   render() {
     return (
-      <BrowserRouter>
-        <Nav/>
-      </BrowserRouter>
+        <div className="App">
+        <AppBar position="static" color="primary">
+          <Toolbar>
+            <Typography variant="title" color="inherit">
+              BookShelf
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        <header className="App-header">
+          <h1 className="App-title">Welcome to React</h1>
+        </header>
+        <div className={classes.root}>
+      </div>
+      <div>
+            <div className="mainForm">
+            <TextField
+              id="name"
+              label="Имя"
+              className="field"
+              value={this.state.name}
+              onChange={this.onChangeValName}
+              margin="normal"
+             />
+              <TextField
+              id="name"
+              label="Имя автора"
+              className="field"
+              value={this.state.nameAuthor}
+              onChange={this.onChangeValNameAuthor}
+              margin="normal"
+             />
+              <TextField
+                id="name"
+                label="Прайс"
+                className="field"
+                value={this.state.price}
+                onChange={this.onChangeValPrice}
+                margin="normal"
+              />
+                <Button color="primary" variant="raised" onClick={this.postBook}>Отправить</Button>
+              </div>
+          </div>
+      </div>
     );
   }
 }

@@ -20,6 +20,6 @@ const simpleBookSchema = new Schema({
     versionKey: false
 })
 
-const simpleBook = mongoose.model("simpleBooks", simpleBookSchema);
+const simpleBook = mongoose.model("simplebooks", simpleBookSchema);
 
 module.exports = { simpleBook };
